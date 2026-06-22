@@ -1,4 +1,3 @@
-import mysql from 'mysql2/promise'
 import { Sequelize } from 'sequelize'
 import { env } from '../config/env'
 
@@ -34,25 +33,7 @@ export const sequelize = new Sequelize(
   },
 )
 
-export const ensureDatabaseExists = async (): Promise<void> => {
-  const connection = await mysql.createConnection({
-    host: databaseConfig.host,
-    user: databaseConfig.username,
-    password: databaseConfig.password,
-    port: databaseConfig.port,
-  })
-
-  try {
-    await connection.query(
-      `CREATE DATABASE IF NOT EXISTS \`${databaseConfig.database}\``,
-    )
-  } finally {
-    await connection.end()
-  }
-}
-
 export const connectDatabase = async (): Promise<void> => {
-  await ensureDatabaseExists()
   await sequelize.authenticate()
 
   console.log(
