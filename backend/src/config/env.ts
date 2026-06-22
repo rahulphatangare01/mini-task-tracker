@@ -1,76 +1,11 @@
 import dotenv from 'dotenv'
+import { existsSync } from 'node:fs'
 import { z } from 'zod'
 
-dotenv.config({ quiet: true })
-
-const emptyToUndefined = (value: string | undefined) => {
-  if (value === undefined) {
-    return undefined
-  }
-
-  const trimmed = value.trim()
-
-  return trimmed.length > 0 ? trimmed : undefined
-}
-
-const firstDefined = (...values: Array<string | undefined>) =>
-  values.find((value) => value !== undefined)
-
-const resolveDatabaseUrl = () => {
-  const rawUrl = firstDefined(
-    emptyToUndefined(process.env.DATABASE_URL),
-    emptyToUndefined(process.env.MYSQL_URL),
-    emptyToUndefined(process.env.MYSQL_PUBLIC_URL),
-  )
-
-  if (!rawUrl) {
-    return null
-  }
-
-  try {
-    return new URL(rawUrl)
-  } catch {
-    return null
-  }
-}
-
-const databaseUrl = resolveDatabaseUrl()
-
-const normalizedEnv = {
-  ...process.env,
-  DB_NAME: firstDefined(
-    emptyToUndefined(process.env.DB_NAME),
-    emptyToUndefined(process.env.MYSQLDATABASE),
-    emptyToUndefined(process.env.MYSQL_DATABASE),
-    emptyToUndefined(process.env.DATABASE),
-    emptyToUndefined(databaseUrl?.pathname.replace(/^\//, '')),
-  ),
-  DB_USER: firstDefined(
-    emptyToUndefined(process.env.DB_USER),
-    emptyToUndefined(process.env.MYSQLUSER),
-    emptyToUndefined(databaseUrl?.username),
-  ),
-  DB_PASSWORD: firstDefined(
-    emptyToUndefined(process.env.DB_PASSWORD),
-    emptyToUndefined(process.env.MYSQLPASSWORD),
-    emptyToUndefined(process.env.MYSQL_ROOT_PASSWORD),
-    emptyToUndefined(databaseUrl?.password),
-  ),
-  DB_HOST: firstDefined(
-    emptyToUndefined(process.env.DB_HOST),
-    emptyToUndefined(process.env.MYSQLHOST),
-    emptyToUndefined(databaseUrl?.hostname),
-  ),
-  DB_PORT: firstDefined(
-    emptyToUndefined(process.env.DB_PORT),
-    emptyToUndefined(process.env.MYSQLPORT),
-    emptyToUndefined(databaseUrl?.port),
-  ),
-  CLIENT_ORIGINS: firstDefined(
-    emptyToUndefined(process.env.CLIENT_ORIGINS),
-    'http://localhost:5173,http://localhost:5174',
-  ),
-}
+dotenv.config({
+  path: process.env.ENV_FILE || (existsSync('.env') ? '.env' : '.env.example'),
+  quiet: true,
+})
 
 const envSchema = z.object({
   NODE_ENV: z
@@ -78,15 +13,23 @@ const envSchema = z.object({
     .optional()
     .default('development'),
   PORT: z.coerce.number().int().positive().optional().default(7000),
-  DB_NAME: z.string().trim().min(1).optional().default('mini-task'),
-  DB_USER: z.string().trim().min(1).optional().default('root'),
-  DB_PASSWORD: z.string().trim().optional().default('RahulP@1012'),
-  DB_HOST: z.string().trim().min(1).optional().default('localhost'),
-  DB_PORT: z.coerce.number().int().positive().optional().default(3306),
+  MYSQL_URL: z.string().trim().optional(),
+  DB_NAME: z.string().trim().min(1, 'DB_NAME is required').optional(),
+  DB_USER: z.string().trim().min(1, 'DB_USER is required').optional(),
+  DB_PASSWORD: z.string().trim().optional().default(''),
+  DB_HOST: z.string().trim().min(1, 'DB_HOST is required').optional(),
+  DB_PORT: z.coerce.number().int().positive({
+    message: 'DB_PORT must be a positive number',
+  }).optional(),
   DB_LOGGING: z
     .enum(['true', 'false'])
     .optional()
     .default('false')
+    .transform((value) => value === 'true'),
+  DB_AUTO_CREATE: z
+    .enum(['true', 'false'])
+    .optional()
+    .default('true')
     .transform((value) => value === 'true'),
   DB_RUN_MIGRATIONS: z
     .enum(['true', 'false'])
@@ -111,7 +54,29 @@ const envSchema = z.object({
     ),
 })
 
-const parsedEnv = envSchema.safeParse(normalizedEnv)
+const parsedEnv = envSchema.superRefine((value, ctx) => {
+  if (value.MYSQL_URL) {
+    return
+  }
+
+  const hasSplitConfig = Boolean(
+    value.DB_NAME &&
+      value.DB_USER &&
+      value.DB_HOST &&
+      value.DB_PORT,
+  )
+
+  if (hasSplitConfig) {
+    return
+  }
+
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    message:
+      'Provide MYSQL_URL or complete DB_NAME, DB_USER, DB_HOST, and DB_PORT configuration.',
+    path: ['MYSQL_URL'],
+  })
+}).safeParse(process.env)
 
 if (!parsedEnv.success) {
   const errors = z.flattenError(parsedEnv.error)
