@@ -1,7 +1,12 @@
 import axios from 'axios'
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:7000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim()
+
+if (!API_BASE_URL) {
+  throw new Error(
+    'Missing VITE_API_BASE_URL. Set it in frontend/.env or your deployment environment.',
+  )
+}
 
 export const http = axios.create({
   baseURL: API_BASE_URL,
