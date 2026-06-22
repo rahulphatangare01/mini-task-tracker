@@ -2,10 +2,10 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd backend && env -u NPM_TOKEN -u NPM_CONFIG__AUTH -u NPM_CONFIG__AUTH_TOKEN -u NODE_AUTH_TOKEN npm ci && npm run build"
+    "buildCommand": "env -u NPM_TOKEN -u NPM_CONFIG__AUTH -u NPM_CONFIG__AUTH_TOKEN -u NODE_AUTH_TOKEN npm ci --include=dev && npm run build"
   },
   "deploy": {
-    "startCommand": "cd backend && npm run start",
+    "startCommand": "npm run start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

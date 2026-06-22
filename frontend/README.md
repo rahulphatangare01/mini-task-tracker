@@ -1,73 +1,125 @@
-# React + TypeScript + Vite
+# Frontend Application Plan
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Goal
 
-Currently, two official plugins are available:
+Build a task tracker frontend for the Mini Task Tracker application with:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- task creation
+- task listing
+- task detail view
+- task completion
+- filtering
+- search
+- edit flow
+- delete confirmation
+- priority and due date support
+- summary cards
+- client-side validation
+- backend API integration
 
-## React Compiler
+## Stack Used
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- TypeScript
+- Vite
+- React Router
+- Axios
+- Zod
+- React Day Picker
+- Tiptap
+- Vitest
+- Testing Library
 
-## Expanding the ESLint configuration
+## Frontend Areas Covered
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Routing and Navigation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- application routing with task list and task detail routes
+- shared shell layout
+- create task entry point from the main page
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Task Board UI
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- summary cards for:
+  - total tasks
+  - open tasks
+  - completed tasks
+- searchable and filterable task listing
+- icon-based row actions
+- responsive task detail panel
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Task Form
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- create and edit in modal flow
+- fields:
+  - title
+  - description
+  - priority
+  - due date
+- client-side `zod` validation
+- rich-text description editor using Tiptap
+- inline error messages
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Task Actions
+
+- create task
+- edit task
+- complete task
+- soft-delete flow through confirmation modal
+- open task detail by route
+
+### API Integration
+
+- centralized Axios instance
+- task service methods for:
+  - list
+  - summary
+  - get by id
+  - create
+  - update
+  - complete
+  - delete
+- toast feedback for success and error states
+
+### UI/UX Coverage
+
+- loading skeletons
+- empty states
+- error banner handling
+- responsive table/card behavior
+- hidden scrollbars with preserved scrolling
+- calendar popover fixes
+- disabled past-date selection
+
+### Testing Coverage
+
+- Vitest + Testing Library setup
+- utility tests for rich-text sanitizing and truncation
+- component tests for:
+  - task table behavior
+  - task form validation
+
+## Current Status
+
+The planned frontend scope is implemented for the main product requirements.
+
+Completed:
+
+- create task
+- view task list
+- complete task
+- filter tasks
+- search tasks
+- edit task
+- delete task with confirmation
+- priority and due date handling
+- summary view
+- client-side validation
+- backend API integration
+
+## Remaining Improvements
+
+- add more end-to-end style frontend tests with mocked APIs
+- improve bundle size after adding Tiptap
+- continue responsive polish for edge-case screen sizes
+- optionally share contracts/schemas with backend

@@ -1,5 +1,5 @@
-import { startTransition, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { startTransition, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   completeTask,
   createTask,
@@ -8,69 +8,69 @@ import {
   getTasks,
   getTaskSummary,
   updateTask,
-} from '../service/task.service'
-import { AppShell } from '../components/layout/AppShell'
-import { DeleteTaskDialog } from '../components/tasks/DeleteTaskDialog'
-import { TaskDetailPanel } from '../components/tasks/TaskDetailPanel'
-import { TaskFilters } from '../components/tasks/TaskFilters'
-import { TaskFormDialog } from '../components/tasks/TaskFormDialog'
-import { TaskSummaryCards } from '../components/tasks/TaskSummaryCards'
-import { TaskTable } from '../components/tasks/TaskTable'
-import { useToast } from '../components/ui/ToastProvider'
-import type { TaskFormValues } from '../schemas/task'
-import type { Task, TaskFilterStatus, TaskSummary } from '../types/task'
-import { Button } from '../components/ui/Button'
+} from "../service/task.service";
+import { AppShell } from "../components/layout/AppShell";
+import { DeleteTaskDialog } from "../components/tasks/DeleteTaskDialog";
+import { TaskDetailPanel } from "../components/tasks/TaskDetailPanel";
+import { TaskFilters } from "../components/tasks/TaskFilters";
+import { TaskFormDialog } from "../components/tasks/TaskFormDialog";
+import { TaskSummaryCards } from "../components/tasks/TaskSummaryCards";
+import { TaskTable } from "../components/tasks/TaskTable";
+import { useToast } from "../components/ui/ToastProvider";
+import type { TaskFormValues } from "../schemas/task";
+import type { Task, TaskFilterStatus, TaskSummary } from "../types/task";
+import { Button } from "../components/ui/Button";
 
 const initialSummary: TaskSummary = {
   all: 0,
   open: 0,
   completed: 0,
-}
+};
 
 export function TasksPage() {
-  const navigate = useNavigate()
-  const { taskId } = useParams<{ taskId?: string }>()
-  const { pushToast } = useToast()
+  const navigate = useNavigate();
+  const { taskId } = useParams<{ taskId?: string }>();
+  const { pushToast } = useToast();
 
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [summary, setSummary] = useState<TaskSummary>(initialSummary)
-  const [loading, setLoading] = useState(true)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [status, setStatus] = useState<TaskFilterStatus>('all')
-  const [searchInput, setSearchInput] = useState('')
-  const [formOpen, setFormOpen] = useState(false)
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [activeTask, setActiveTask] = useState<Task | null>(null)
-  const [pendingAction, setPendingAction] = useState(false)
-  const [pageError, setPageError] = useState('')
-  const [refreshing, setRefreshing] = useState(false)
-  const [search, setSearch] = useState('')
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [summary, setSummary] = useState<TaskSummary>(initialSummary);
+  const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [status, setStatus] = useState<TaskFilterStatus>("all");
+  const [searchInput, setSearchInput] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [pendingAction, setPendingAction] = useState(false);
+  const [pageError, setPageError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const showDetailPanel = detailLoading || Boolean(selectedTask)
-  const hasLoadedRef = useRef(false)
-  const requestIdRef = useRef(0)
+  const showDetailPanel = detailLoading || Boolean(selectedTask);
+  const hasLoadedRef = useRef(false);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      setSearch(searchInput.trim())
-    }, 250)
+      setSearch(searchInput.trim());
+    }, 250);
 
     return () => {
-      window.clearTimeout(timeoutId)
-    }
-  }, [searchInput])
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchInput]);
 
   const refreshBoard = async () => {
-    const requestId = ++requestIdRef.current
+    const requestId = ++requestIdRef.current;
 
     if (hasLoadedRef.current) {
-      setRefreshing(true)
+      setRefreshing(true);
     } else {
-      setLoading(true)
+      setLoading(true);
     }
-    setPageError('')
+    setPageError("");
 
     try {
       const [taskData, summaryData] = await Promise.all([
@@ -79,152 +79,154 @@ export function TasksPage() {
           search,
         }),
         getTaskSummary(),
-      ])
+      ]);
 
       if (requestId !== requestIdRef.current) {
-        return
+        return;
       }
 
-      setTasks(taskData.items)
-      setSummary(summaryData)
-      hasLoadedRef.current = true
+      setTasks(taskData.items);
+      setSummary(summaryData);
+      hasLoadedRef.current = true;
     } catch (error) {
       if (requestId !== requestIdRef.current) {
-        return
+        return;
       }
 
-      setPageError(error instanceof Error ? error.message : 'Unable to load tasks')
+      setPageError(
+        error instanceof Error ? error.message : "Unable to load tasks",
+      );
     } finally {
       if (requestId === requestIdRef.current) {
-        setLoading(false)
-        setRefreshing(false)
+        setLoading(false);
+        setRefreshing(false);
       }
     }
-  }
+  };
 
   useEffect(() => {
-    void refreshBoard()
-  }, [status, search])
+    void refreshBoard();
+  }, [status, search, refreshBoard]);
 
   useEffect(() => {
     if (!taskId) {
-      setSelectedTask(null)
-      return
+      setSelectedTask(null);
+      return;
     }
 
-    setDetailLoading(true)
+    setDetailLoading(true);
 
     void getTaskById(taskId)
       .then((task) => {
-        setSelectedTask(task)
+        setSelectedTask(task);
       })
       .catch(() => {
-        setSelectedTask(null)
+        setSelectedTask(null);
       })
       .finally(() => {
-        setDetailLoading(false)
-      })
-  }, [taskId])
+        setDetailLoading(false);
+      });
+  }, [taskId]);
 
   const openCreateDialog = () => {
-    setFormMode('create')
-    setActiveTask(null)
-    setFormOpen(true)
-  }
+    setFormMode("create");
+    setActiveTask(null);
+    setFormOpen(true);
+  };
 
   const openEditDialog = (task: Task) => {
-    setFormMode('edit')
-    setActiveTask(task)
-    setFormOpen(true)
-  }
+    setFormMode("edit");
+    setActiveTask(task);
+    setFormOpen(true);
+  };
 
   const openDeleteDialog = (task: Task) => {
-    setActiveTask(task)
-    setDeleteOpen(true)
-  }
+    setActiveTask(task);
+    setDeleteOpen(true);
+  };
 
   const handleCreateOrUpdate = async (values: TaskFormValues) => {
-    setPendingAction(true)
+    setPendingAction(true);
 
     try {
-      if (formMode === 'create') {
-        const created = await createTask(values)
-        pushToast('Task created successfully')
+      if (formMode === "create") {
+        const created = await createTask(values);
+        pushToast("Task created successfully");
         startTransition(() => {
-          navigate(`/tasks/${created.id}`)
-        })
+          navigate(`/tasks/${created.id}`);
+        });
       } else if (activeTask) {
-        const updated = await updateTask(activeTask.id, values)
-        pushToast('Task updated successfully')
+        const updated = await updateTask(activeTask.id, values);
+        pushToast("Task updated successfully");
         startTransition(() => {
-          navigate(`/tasks/${updated.id}`)
-        })
+          navigate(`/tasks/${updated.id}`);
+        });
       }
 
-      setFormOpen(false)
-      await refreshBoard()
+      setFormOpen(false);
+      await refreshBoard();
     } catch (error) {
       pushToast(
-        error instanceof Error ? error.message : 'Unable to save task',
-        'error',
-      )
-      throw error
+        error instanceof Error ? error.message : "Unable to save task",
+        "error",
+      );
+      throw error;
     } finally {
-      setPendingAction(false)
+      setPendingAction(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
     if (!activeTask) {
-      return
+      return;
     }
 
-    setPendingAction(true)
+    setPendingAction(true);
 
     try {
-      await deleteTask(activeTask.id)
-      pushToast('Task deleted successfully')
-      setDeleteOpen(false)
-      setActiveTask(null)
+      await deleteTask(activeTask.id);
+      pushToast("Task deleted successfully");
+      setDeleteOpen(false);
+      setActiveTask(null);
 
       if (taskId === activeTask.id) {
         startTransition(() => {
-          navigate('/tasks')
-        })
+          navigate("/tasks");
+        });
       }
 
-      await refreshBoard()
+      await refreshBoard();
     } catch (error) {
       pushToast(
-        error instanceof Error ? error.message : 'Unable to delete task',
-        'error',
-      )
+        error instanceof Error ? error.message : "Unable to delete task",
+        "error",
+      );
     } finally {
-      setPendingAction(false)
+      setPendingAction(false);
     }
-  }
+  };
 
   const handleComplete = async (task: Task) => {
-    setPendingAction(true)
+    setPendingAction(true);
 
     try {
-      const updated = await completeTask(task.id)
-      pushToast('Task marked as completed')
+      const updated = await completeTask(task.id);
+      pushToast("Task marked as completed");
 
       if (taskId === task.id) {
-        setSelectedTask(updated)
+        setSelectedTask(updated);
       }
 
-      await refreshBoard()
+      await refreshBoard();
     } catch (error) {
       pushToast(
-        error instanceof Error ? error.message : 'Unable to complete task',
-        'error',
-      )
+        error instanceof Error ? error.message : "Unable to complete task",
+        "error",
+      );
     } finally {
-      setPendingAction(false)
+      setPendingAction(false);
     }
-  }
+  };
 
   return (
     <AppShell>
@@ -232,7 +234,9 @@ export function TasksPage() {
         <div>
           <p className="shell__eyebrow">Operations board</p>
           <h2>Tasks</h2>
-          <p>Search, edit, complete, and review due dates from one workspace.</p>
+          <p>
+            Search, edit, complete, and review due dates from one workspace.
+          </p>
         </div>
         <div className="page-head__actions">
           <Button type="button" onClick={openCreateDialog}>
@@ -241,7 +245,9 @@ export function TasksPage() {
         </div>
       </section>
 
-      {pageError ? <div className="banner banner--error">{pageError}</div> : null}
+      {pageError ? (
+        <div className="banner banner--error">{pageError}</div>
+      ) : null}
 
       <TaskSummaryCards summary={summary} />
 
@@ -253,7 +259,7 @@ export function TasksPage() {
       />
 
       <div
-        className={`content-grid ${showDetailPanel ? '' : 'content-grid--full'}`.trim()}
+        className={`content-grid ${showDetailPanel ? "" : "content-grid--full"}`.trim()}
       >
         <TaskTable
           items={tasks}
@@ -291,5 +297,5 @@ export function TasksPage() {
         onConfirm={handleDelete}
       />
     </AppShell>
-  )
+  );
 }
