@@ -1,12 +1,16 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim()
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
 
-if (!API_BASE_URL) {
+if (!rawApiBaseUrl) {
   throw new Error(
     'Missing VITE_API_BASE_URL. Set it in frontend/.env or your deployment environment.',
   )
 }
+
+const API_BASE_URL = /^https?:\/\//i.test(rawApiBaseUrl)
+  ? rawApiBaseUrl
+  : `https://${rawApiBaseUrl}`
 
 export const http = axios.create({
   baseURL: API_BASE_URL,

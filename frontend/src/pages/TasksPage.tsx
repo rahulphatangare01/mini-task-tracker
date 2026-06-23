@@ -106,7 +106,7 @@ export function TasksPage() {
 
   useEffect(() => {
     void refreshBoard();
-  }, [status, search, refreshBoard]);
+  }, [status, search]);
 
   useEffect(() => {
     if (!taskId) {
